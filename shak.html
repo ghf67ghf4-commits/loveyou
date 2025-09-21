@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pookie Surprise</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #fceabb, #f8b500);
+  text-align: center;
+}
+.page {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 10px;
+  box-sizing: border-box;
+}
+.page.active {
+  display: flex;
+  animation: fadeIn 0.5s forwards;
+}
+@keyframes fadeIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+img {
+  max-width: 90%;
+  max-height: 60%;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+.floatingPhoto {
+  position: absolute;
+  width: auto;
+  height: auto;
+  max-width: 250px; /* max size for big effect */
+  animation: floatDownRotate 5s linear infinite;
+}
+@keyframes floatDownRotate {
+  0% { transform: translateY(-200px) rotate(0deg) scale(0.8); opacity: 0; }
+  30% { opacity: 1; }
+  60% { transform: translateY(50vh) rotate(180deg) scale(1.1); }
+  100% { transform: translateY(100vh) rotate(360deg) scale(1); opacity: 0; }
+}
+button {
+  padding: 12px 25px;
+  font-size: 1.2rem;
+  background: #ff6347;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+button:hover { background: #e5533d; }
+</style>
+</head>
+<body>
+
+<audio id="bgMusic" src="your-music.mp3" loop></audio>
+
+<!-- Pages -->
+<div class="page active" id="page1">
+  <h1>Do you know how Pookie look like?</h1>
+  <button id="tapButton">Tap to know</button>
+</div>
+<div class="page" id="page2"><h1>Pookie in Samsung</h1><img src="pookie_samsung.jpg" alt="Pookie Samsung"></div>
+<div class="page" id="page3"><h1>Pookie in iPhone</h1><img src="pookie_iphone.jpg" alt="Pookie iPhone"></div>
+<div class="page" id="page4"><h1>Pookie in Android</h1><img src="pookie_android.jpg" alt="Pookie Android"></div>
+<div class="page" id="page5"><h1>Pookie in real life! 🎉</h1></div>
+
+<script>
+let currentPage = 1;
+const totalPages = 5;
+let dropInterval = null;
+let animationStarted = false;
+
+// Swipe detection for mobile
+let touchStartX = 0;
+let touchEndX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+document.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); });
+function handleSwipe() {
+  if(touchEndX < touchStartX - 50){ nextPage(); }
+  else if(touchEndX > touchStartX + 50){ prevPage(); }
+}
+
+// Keyboard navigation for desktop/laptop
+document.addEventListener('keydown', e => {
+  if(e.key === "ArrowRight") nextPage();
+  if(e.key === "ArrowLeft") prevPage();
+});
+
+function showPage(page) {
+  for(let i=1; i<=totalPages; i++){
+    document.getElementById(`page${i}`).classList.remove('active');
+  }
+  document.getElementById(`page${page}`).classList.add('active');
+
+  const music = document.getElementById('bgMusic');
+
+  // Stop drop & music if leaving last page
+  if(page !== 5) {
+    if(dropInterval) clearInterval(dropInterval);
+    dropInterval = null;
+    document.querySelectorAll('.floatingPhoto').forEach(img => img.remove());
+    music.pause();
+    music.currentTime = 0;
+  }
+
+  // Start drop & music on last page if animation started
+  if(page === 5 && animationStarted && !dropInterval) {
+    music.play();
+    startDrop();
+  }
+}
+
+function nextPage() {
+  if(currentPage < totalPages){
+    currentPage++;
+    showPage(currentPage);
+  }
+}
+
+function prevPage() {
+  if(currentPage > 1){
+    currentPage--;
+    showPage(currentPage);
+  }
+}
+
+// 16 floating images
+const dropImages = [
+  'image1.jpg','image2.jpg','image3.jpg','image4.jpg',
+  'image5.jpg','image6.jpg','image7.jpg','image8.jpg',
+  'image9.jpg','image10.jpg','image11.jpg','image12.jpg',
+  'image13.jpg','image14.jpg','image15.jpg','image16.jpg'
+];
+
+function startDrop() {
+  dropInterval = setInterval(() => {
+    const img = document.createElement('img');
+    img.src = dropImages[Math.floor(Math.random()*dropImages.length)];
+    img.className = 'floatingPhoto';
+    // Random size 150px - 250px
+    const size = 150 + Math.random() * 100;
+    img.style.width = size + 'px';
+    img.style.left = Math.random()*(window.innerWidth - size)+'px';
+    document.body.appendChild(img);
+    setTimeout(() => img.remove(), 5000);
+  }, 400);
+}
+
+// Tap button on first page
+document.getElementById('tapButton').addEventListener('click', () => {
+  animationStarted = true; // allow last-page animation
+  nextPage(); // go to page 2
+});
+</script>
+
+</body>
+</html>
